@@ -1,0 +1,23 @@
+# PLACEHOLDER - Apple Silicon (M-series) base. Not yet implemented/tested.
+#
+# TODO when implementing:
+#   - Docker Desktop on macOS runs containers in a Linux VM and does NOT
+#     expose Metal/Apple GPU acceleration to containers as of writing -
+#     GPU passthrough for containerized ollama on Apple Silicon is not
+#     currently possible the way it is with NVIDIA/AMD on Linux.
+#   - Practical options to reconsider before assuming this file is the
+#     right approach at all:
+#       1. Run ollama natively on macOS (brew install ollama) instead of in
+#          Docker, to get Metal acceleration - this compose hierarchy would
+#          only be useful for a CPU-only containerized fallback.
+#       2. Revisit if/when Docker Desktop or Apple add GPU passthrough
+#          support for Linux containers on Apple Silicon.
+#   - If proceeding with a CPU-only container anyway, this file would just
+#     extend master-ollama.yml with no device-specific additions.
+#
+# services:
+#   ollama-apple-silicon:
+#     extends:
+#       file: ../master-ollama.yml
+#       service: ollama-base
+#     # No GPU passthrough available in Docker Desktop today - CPU only.

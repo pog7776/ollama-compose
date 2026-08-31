@@ -1,0 +1,33 @@
+# PLACEHOLDER - AMD GPU (ROCm) base. Not yet implemented/tested.
+#
+# TODO when implementing:
+#   - ROCm requires device passthrough rather than the `deploy.resources`
+#     reservation syntax used for NVIDIA:
+#       devices:
+#         - /dev/kfd
+#         - /dev/dri
+#   - Add the container user to the `video` (and often `render`) group:
+#       group_add:
+#         - video
+#         - render
+#   - Relevant environment variables (check current ollama/ROCm docs, these
+#     change between ROCm versions):
+#       HSA_OVERRIDE_GFX_VERSION (sometimes needed for unsupported/newer GPUs)
+#       ROCR_VISIBLE_DEVICES / HIP_VISIBLE_DEVICES
+#   - ollama publishes a ROCm-specific image tag, e.g. ollama/ollama:rocm -
+#     verify current tag name before use, it may have changed.
+#   - Reference: https://hub.docker.com/r/ollama/ollama tags, and
+#     https://rocm.docs.amd.com/ for container/device setup specifics.
+#
+# services:
+#   ollama-amd:
+#     extends:
+#       file: ../master-ollama.yml
+#       service: ollama-base
+#     image: ollama/ollama:rocm  # verify tag
+#     devices:
+#       - /dev/kfd
+#       - /dev/dri
+#     group_add:
+#       - video
+#       - render

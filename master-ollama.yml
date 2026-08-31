@@ -1,0 +1,21 @@
+# Base service definition. Not meant to be run directly - extended by
+# hardware-specific ollama-base.yml files (e.g. nvidia/ollama-base.yml).
+#
+# NOTE: `extends` only merges the referenced *service*, not top-level
+# `volumes:`/`networks:` sections. Any file that is actually run with
+# `docker compose -f ... up` must redeclare `volumes: ollama_storage:`
+# itself, even though it inherits everything else via the extends chain.
+# The declaration here exists for documentation/completeness and for
+# testing this file directly.
+services:
+  ollama-base:
+    image: ollama/ollama:latest
+    container_name: ollama
+    restart: unless-stopped
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_storage:/root/.ollama
+
+volumes:
+  ollama_storage:

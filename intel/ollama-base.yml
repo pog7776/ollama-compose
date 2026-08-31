@@ -1,0 +1,28 @@
+# PLACEHOLDER - Intel GPU (Arc / integrated) base. Not yet implemented/tested.
+#
+# TODO when implementing:
+#   - Intel GPU support in ollama has historically been less mature than
+#     NVIDIA/AMD and may depend on the IPEX-LLM / SYCL backend rather than
+#     upstream ollama directly - check current ollama docs for Intel status
+#     before assuming feature parity.
+#   - Typical device passthrough for Intel GPU compute:
+#       devices:
+#         - /dev/dri
+#   - Often requires the container user to be in the `video`/`render` group,
+#     similar to AMD:
+#       group_add:
+#         - video
+#         - render
+#   - Reference: https://github.com/intel/ipex-llm (search for "ollama" -
+#     Intel's own fork/build is commonly used rather than upstream image).
+#
+# services:
+#   ollama-intel:
+#     extends:
+#       file: ../master-ollama.yml
+#       service: ollama-base
+#     devices:
+#       - /dev/dri
+#     group_add:
+#       - video
+#       - render

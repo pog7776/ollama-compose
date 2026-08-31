@@ -1,0 +1,15 @@
+# NVIDIA GPU + WSL2. Run with:
+#   docker compose -f nvidia/wsl/compose.yml up -d
+name: ollama
+
+services:
+  ollama:
+    extends:
+      file: ../ollama-base.yml
+      service: ollama-nvidia
+    # WSL2 benefits from sharing the host's IPC namespace for shared-memory
+    # performance between the container and the WSL2 VM.
+    ipc: host
+
+volumes:
+  ollama_storage:

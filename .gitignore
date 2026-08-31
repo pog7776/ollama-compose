@@ -1,0 +1,14 @@
+# Local secrets/config - use .env.template as the reference
+.env
+
+# OS cruft
+.DS_Store
+Thumbs.db
+
+# Editor/tooling cruft
+*.swp
+*.log
+
+# Local compose overrides, if you ever add them for a one-off tweak
+docker-compose.override.yml
+compose.override.yml
