@@ -1,0 +1,10 @@
+# Raspberry Pi 5 base (BCM2712, 4x Cortex-A76 @ 2.4GHz).
+# Common to all RAM configurations (2GB, 4GB, 8GB, 16GB).
+services:
+  ollama-pi5-base:
+    extends:
+      file: ../ollama-base.yml
+      service: ollama-rpi-base
+    environment:
+      # Pin exactly to the 4 physical Cortex-A76 cores
+      - OLLAMA_NUM_THREADS=4

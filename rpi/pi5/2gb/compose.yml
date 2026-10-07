@@ -1,0 +1,19 @@
+# Raspberry Pi 5 (2GB RAM) deployment.
+# Run with: docker compose -f rpi/pi5/2gb/compose.yml up -d
+#
+# Best suited for: <=1.5B models (e.g. Qwen2.5 0.5B, SmolLM2 1.7B Q4_K_M).
+name: ollama
+
+services:
+  ollama:
+    extends:
+      file: ../ollama-base.yml
+      service: ollama-pi5-base
+    deploy:
+      resources:
+        limits:
+          # Cap memory at 1.4GB to leave 600MB headroom for OS and system services
+          memory: 1400M
+
+volumes:
+  ollama_storage:

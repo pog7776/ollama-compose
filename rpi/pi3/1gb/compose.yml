@@ -1,0 +1,22 @@
+# Raspberry Pi 3B+ (1GB RAM) deployment.
+# Run with: docker compose -f rpi/pi3/3b-plus/compose.yml up -d
+#
+# Hardware limits:
+# - Total RAM is 1GB (shared with GPU). Only <=0.5B - 1B heavily quantized
+#   models are feasible (e.g. Qwen2.5 0.5B Q4_K_M ~390MB, SmolLM2 135M/360M).
+# - Host zram or swap is strongly recommended to prevent kernel OOM kills.
+name: ollama
+
+services:
+  ollama:
+    extends:
+      file: ../ollama-base.yml
+      service: ollama-pi3-base
+    deploy:
+      resources:
+        limits:
+          # Strict 700MB ceiling to prevent OOM-killing kernel and SSH daemons
+          memory: 700M
+
+volumes:
+  ollama_storage:
