@@ -14,6 +14,9 @@ services:
     restart: unless-stopped
     ports:
       - "11434:11434"
+    environment:
+      # Auto-unload weights after 5m idle to lower idle thermals and free memory/VRAM
+      - OLLAMA_KEEP_ALIVE=5m
     volumes:
       - ollama_storage:/root/.ollama
 

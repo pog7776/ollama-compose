@@ -13,5 +13,3 @@ services:
       - OLLAMA_NUM_PARALLEL=1
       # Flash attention is CUDA/Metal only; disable to prevent ARM CPU fallback penalties
       - OLLAMA_FLASH_ATTENTION=0
-      # Auto-unload weights after 5m idle to lower idle thermals and free memory
-      - OLLAMA_KEEP_ALIVE=5m
