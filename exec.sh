@@ -1,3 +1,3 @@
 #!/bin/sh
 
-exec sudo docker exec -it ollama ollama "$@"
+exec docker exec -it ollama ollama "$@"
