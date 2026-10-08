@@ -12,3 +12,9 @@ Thumbs.db
 # Local compose overrides, if you ever add them for a one-off tweak
 docker-compose.override.yml
 compose.override.yml
+
+# Host-specific root compose configurations
+/compose.yml
+/compose.yaml
+/docker-compose.yml
+/docker-compose.yaml
