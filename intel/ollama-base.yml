@@ -1,28 +1,13 @@
-# PLACEHOLDER - Intel GPU (Arc / integrated) base. Not yet implemented/tested.
+# Generic Intel CPU base. Extends master-ollama.yml with x86_64 settings
+# suitable for any Intel system (Core, Xeon, Celeron/Pentium).
 #
-# TODO when implementing:
-#   - Intel GPU support in ollama has historically been less mature than
-#     NVIDIA/AMD and may depend on the IPEX-LLM / SYCL backend rather than
-#     upstream ollama directly - check current ollama docs for Intel status
-#     before assuming feature parity.
-#   - Typical device passthrough for Intel GPU compute:
-#       devices:
-#         - /dev/dri
-#   - Often requires the container user to be in the `video`/`render` group,
-#     similar to AMD:
-#       group_add:
-#         - video
-#         - render
-#   - Reference: https://github.com/intel/ipex-llm (search for "ollama" -
-#     Intel's own fork/build is commonly used rather than upstream image).
-#
-# services:
-#   ollama-intel:
-#     extends:
-#       file: ../master-ollama.yml
-#       service: ollama-base
-#     devices:
-#       - /dev/dri
-#     group_add:
-#       - video
-#       - render
+# NOTE: The official `ollama/ollama:latest` image provides multi-arch
+# linux/amd64 binaries with built-in AVX/AVX2/AVX-512 CPU runners.
+services:
+  ollama-intel:
+    extends:
+      file: ../master-ollama.yml
+      service: ollama-base
+    environment:
+      # Flash attention is CUDA/Metal only; disable to prevent CPU fallback penalties
+      - OLLAMA_FLASH_ATTENTION=0

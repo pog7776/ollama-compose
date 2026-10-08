@@ -1,0 +1,12 @@
+# Generic Intel deployment. Run with:
+#   docker compose -f intel/compose.yml up -d
+name: ollama
+
+services:
+  ollama:
+    extends:
+      file: ollama-base.yml
+      service: ollama-intel
+
+volumes:
+  ollama_storage:
