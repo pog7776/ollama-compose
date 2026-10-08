@@ -7,13 +7,13 @@ across different machines, organized by hardware vendor/architecture first, then
 
 ```
 ollama-compose/
-├── master-ollama.yml          # base: image, ports, volumes, restart
+├── master-ollama.yml          # base: image, ports, volumes, restart, 5m idle keepalive
 ├── nvidia/
 │   ├── ollama-base.yml        # NVIDIA device passthrough, driver caps, flash attention
 │   ├── wsl/compose.yml        # + ipc: host (WSL2 shared-memory accommodation)
 │   └── linux/compose.yml      # native Linux, no ipc: host
 ├── rpi/
-│   ├── ollama-base.yml        # generic ARM CPU base (single concurrency, keepalive, flash attn off)
+│   ├── ollama-base.yml        # generic ARM CPU base (single concurrency, flash attn off)
 │   ├── pi3/
 │   │   ├── ollama-base.yml    # Pi 3 base (BCM2837B0 Cortex-A53, 4 threads, 64-bit OS required)
 │   │   ├── 1gb/compose.yml    # 700M memory ceiling for 1GB RAM
@@ -24,9 +24,10 @@ ollama-compose/
 │       ├── 4gb/compose.yml    # 3200M memory limit (up to 3B models)
 │       ├── 8gb/compose.yml    # 6500M memory limit (up to 7B/8B Q4 models)
 │       └── 16gb/compose.yml   # 14000M memory limit (up to 14B Q4 models)
-├── amd/
-│   └── ollama-base.yml        # placeholder - not yet implemented
 ├── intel/
+│   ├── ollama-base.yml        # generic Intel x86_64 CPU base (flash attn off)
+│   └── compose.yml            # generic Intel configuration
+├── amd/
 │   └── ollama-base.yml        # placeholder - not yet implemented
 └── apple-silicon/
     └── ollama-base.yml        # placeholder - not yet implemented
@@ -40,11 +41,13 @@ master-ollama.yml  (generic base)
   ├─ nvidia/ollama-base.yml  (+ NVIDIA GPU config)
   │    ├─ nvidia/wsl/compose.yml  (+ WSL-specific tweaks)
   │    └─ nvidia/linux/compose.yml  (no tweaks needed)
-  └─ rpi/ollama-base.yml  (+ generic ARM CPU tuning)
-       ├─ rpi/pi3/ollama-base.yml  (+ Pi 3 CPU architecture & 64-bit requirements)
-       │    └─ rpi/pi3/1gb/compose.yml  (+ 1GB RAM memory limits)
-       └─ rpi/pi5/ollama-base.yml  (+ Pi 5 CPU & thread tuning)
-            └─ rpi/pi5/8gb/compose.yml  (+ 8GB RAM memory limits)
+  ├─ rpi/ollama-base.yml  (+ generic ARM CPU tuning)
+  │    ├─ rpi/pi3/ollama-base.yml  (+ Pi 3 CPU architecture & 64-bit requirements)
+  │    │    └─ rpi/pi3/1gb/compose.yml  (+ 1GB RAM memory limits)
+  │    └─ rpi/pi5/ollama-base.yml  (+ Pi 5 CPU & thread tuning)
+  │         └─ rpi/pi5/8gb/compose.yml  (+ 8GB RAM memory limits)
+  └─ intel/ollama-base.yml  (+ generic Intel CPU tuning)
+       └─ intel/compose.yml  (generic Intel runner)
 ```
 
 Because the parent file is always named `ollama-base.yml` (or `master-ollama.yml`
@@ -55,7 +58,7 @@ relative path (`../ollama-base.yml` or `../../ollama-base.yml`) regardless of wh
 definition - it does **not** pull in top-level `volumes:`/`networks:` sections
 from parent files. Every file that's actually run with `docker compose -f ... up`
 must redeclare the `volumes:` block itself (see `nvidia/wsl/compose.yml` and
-`nvidia/linux/compose.yml` for the pattern). Each leaf file also pins an
+`intel/compose.yml` for the pattern). Each leaf file also pins an
 explicit `name: ollama` so the Compose project name doesn't vary based on
 which directory it happens to be run from.
 
@@ -87,6 +90,12 @@ docker run --rm --gpus all nvidia/cuda:12.6.0-base-ubuntu24.04 nvidia-smi
 - **CPU-only inference**: Uses ARM NEON and vector instructions. Flash attention is explicitly disabled in the base config to prevent fallback penalties. Concurrency is pinned to 1 (`OLLAMA_NUM_PARALLEL=1`) to avoid thrashing low core counts.
 - **Cooling**: On the Raspberry Pi 5, active cooling (the official Raspberry Pi Active Cooler or a fan case) is strongly recommended; bare silicon will thermally throttle under sustained prompt evaluation.
 
+### Intel / x86_64 CPU
+
+- **Multi-arch image support**: The official `ollama/ollama:latest` image provides native `linux/amd64` binaries with built-in AVX/AVX2/AVX-512 CPU runners.
+- **Flash attention**: Explicitly disabled in the base config to prevent CUDA fallback penalties on CPU.
+- **Idle keepalive**: Automatically unloads model weights after 5 minutes of inactivity (inherited from `master-ollama.yml`).
+
 ## Status
 
 | Vendor / Architecture | Environment / Model | Status |
@@ -95,8 +104,8 @@ docker run --rm --gpus all nvidia/cuda:12.6.0-base-ubuntu24.04 nvidia-smi
 | NVIDIA | Linux (native) | ✅ Implemented |
 | Raspberry Pi | Pi 5 (2GB, 4GB, 8GB, 16GB) | ✅ Implemented |
 | Raspberry Pi | Pi 3B+ / Pi 3 (1GB) | ✅ Implemented |
+| Intel | generic (x86_64 CPU) | ✅ Implemented |
 | AMD | any | 🚧 Placeholder only (`amd/ollama-base.yml`) |
-| Intel | any | 🚧 Placeholder only (`intel/ollama-base.yml`) |
 | Apple Silicon | any | 🚧 Placeholder only (`apple-silicon/ollama-base.yml`) |
 
 ## Usage
@@ -108,6 +117,9 @@ docker compose -f nvidia/wsl/compose.yml up -d
 # NVIDIA GPU on native Linux
 docker compose -f nvidia/linux/compose.yml up -d
 
+# Intel CPU
+docker compose -f intel/compose.yml up -d
+
 # Raspberry Pi 5 (8GB)
 docker compose -f rpi/pi5/8gb/compose.yml up -d
 
@@ -115,17 +127,38 @@ docker compose -f rpi/pi5/8gb/compose.yml up -d
 docker compose -f rpi/pi3/3b-plus/compose.yml up -d
 
 # Preview the fully-resolved config without starting anything
-docker compose -f nvidia/wsl/compose.yml config
+docker compose -f intel/compose.yml config
 
 # Stop
-docker compose -f nvidia/wsl/compose.yml down
+docker compose -f intel/compose.yml down
 ```
 
 ollama listens on `http://localhost:11434` regardless of environment.
 
+## Host-Specific Overrides (Root Compose)
+
+For machine-specific deployments (such as custom storage mounts like `/srv/ai/models:/root/.ollama/models` or network shares), you can place a `compose.yml` in the repository root.
+
+Root-level compose files (`compose.yml`, `compose.yaml`, `docker-compose.yml`, `docker-compose.yaml`) are ignored by `.gitignore` so local server overrides remain untracked:
+
+```yaml
+name: ollama
+
+services:
+  ollama:
+    extends:
+      file: intel/compose.yml
+      service: ollama
+    volumes:
+      - /srv/ai/models:/root/.ollama/models
+
+volumes:
+  ollama_storage:
+```
+
 ## Adding a new environment
 
-1. Pick (or create) the vendor directory (e.g. `nvidia/`, `amd/`, `rpi/`).
+1. Pick (or create) the vendor directory (e.g. `nvidia/`, `amd/`, `rpi/`, `intel/`).
 2. If the vendor's `ollama-base.yml` doesn't exist yet or is still a
    placeholder, fill it in with the hardware-specific device/driver config.
 3. Create `<vendor>/<environment>/compose.yml` extending `../ollama-base.yml`,
