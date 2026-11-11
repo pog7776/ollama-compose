@@ -1,0 +1,12 @@
+# Generic x86_64 CPU deployment (Intel or AMD). Run with:
+#   docker compose -f cpu/compose.yml up -d
+name: ollama
+
+services:
+  ollama:
+    extends:
+      file: ollama-base.yml
+      service: ollama-cpu
+
+volumes:
+  ollama_storage:

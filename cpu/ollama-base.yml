@@ -1,10 +1,11 @@
-# Generic Intel CPU base. Extends master-ollama.yml with x86_64 settings
-# suitable for any Intel system (Core, Xeon, Celeron/Pentium).
+# Generic x86_64 CPU base (Intel or AMD). Extends master-ollama.yml with
+# CPU-only settings for any x86_64 system: Core, Xeon, Ryzen, EPYC, etc.
+# Also used for CPU-only side instances on GPU hosts (e.g. a resident Kev).
 #
 # NOTE: The official `ollama/ollama:latest` image provides multi-arch
 # linux/amd64 binaries with built-in AVX/AVX2/AVX-512 CPU runners.
 services:
-  ollama-intel:
+  ollama-cpu:
     extends:
       file: ../master-ollama.yml
       service: ollama-base
